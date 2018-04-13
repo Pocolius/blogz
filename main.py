@@ -9,7 +9,7 @@ db = SQLAlchemy(app)
 
 
 # TODO
-class Blog(db.Model)
+class Blog(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200))
