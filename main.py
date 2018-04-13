@@ -15,9 +15,9 @@ class Blog(db.Model):
     title = db.Column(db.String(200))
     body = db.Column(db.String(500))
 
-    def __init__(self, title, content):
+    def __init__(self, title, body):
         self.title = title
-        self.content = content
+        self.body = body
 
 #####################START CHANGES HERE#####################
 
@@ -25,27 +25,26 @@ class Blog(db.Model):
 def index():
 
     if request.method == 'POST':
-        task_name = request.form['task']
-        new_task = Task(task_name)
-        db.session.add(new_task)
+        blog_post = request.form['blog']
+        new_blog = Blog(blog_post)
+        db.session.add(blog_post)
         db.session.commit()
 
-    tasks = Task.query.filter_by(completed=False).all()
-    completed_tasks = Task.query.filter_by(completed=True).all()
-    return render_template('todos.html',title="Get It Done!", 
-        tasks=tasks, completed_tasks=completed_tasks)
+    blogs = Blog.query.all()
+    return render_template('blog.html',title="Build-A-Blog", 
+        blogs=blogs)
 
 
-@app.route('/delete-task', methods=['POST'])
-def delete_task():
+#@app.route('/delete-task', methods=['POST'])
+#def delete_task():
 
-    task_id = int(request.form['task-id'])
-    task = Task.query.get(task_id)
-    task.completed = True
-    db.session.add(task)
-    db.session.commit()
+#    task_id = int(request.form['task-id'])
+#    task = Task.query.get(task_id)
+#    task.completed = True
+#    db.session.add(task)
+#    db.session.commit()
 
-    return redirect('/')
+#    return redirect('/')
 
 
 ###################STOP CHANGES HERE#################
