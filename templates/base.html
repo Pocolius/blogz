@@ -1,9 +1,18 @@
 <!doctype html>
 <html>
+    <style>
+        .error { color: red; }
+    </style>
     <head>
         <title>{{title}}</title>
     </head>
 <body>
+
+    <nav>
+    <a href='/blog'>Home</a>
+    <a href='/newpost'>New Post</a>
+    <hr />
+    </nav>
 
     {% block content %}
     {% endblock %}

@@ -5,14 +5,16 @@
     <form action='/newpost' method='post'>
         <label>
             <h3>Title</h3>
-            <input type="text" name='title' />
+            <input type="text" name='title' value='{{blog_title}}'/>
         </label>
         <br>
         <br>
         <label>
             <h3>Content</h3>
-            <textarea name='body' rows='6' cols='50'></textarea>
+            <textarea name='body' rows='6' cols='50'>{{blog_content}}</textarea>
         </label>
+        <br>
+        <span class="error">{{error}}</span>
         <br>
         <br>
         <input type="submit" value='New Post' />
