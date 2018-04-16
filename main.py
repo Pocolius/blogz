@@ -21,18 +21,18 @@ class Blog(db.Model):
 
 #####################START CHANGES HERE#####################
 
-@app.route('/', methods=['POST', 'GET'])
+@app.route('/blog', methods=['POST', 'GET'])
 def index():
 
     if request.method == 'POST':
-        blog_post = request.form['blog']
-        new_blog = Blog(blog_post)
-        db.session.add(blog_post)
+        blog_title = request.form['title']
+        blog_content = request.form['body']
+        new_blog = Blog(blog_title, blog_content)
+        db.session.add(new_blog)
         db.session.commit()
 
     blogs = Blog.query.all()
-    return render_template('blog.html',title="Build-A-Blog", 
-        blogs=blogs)
+    return render_template('blog.html', title="Build-A-Blog", blogs=blogs)
 
 
 #@app.route('/delete-task', methods=['POST'])
