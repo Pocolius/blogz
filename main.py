@@ -1,3 +1,11 @@
+#TODO List
+#add the following templates: signup.html, login.html, index.html
+#add a singleUser.html template - will display blogs only by a single author
+#add route handler functions for signup, login, and index
+#add a logout function that handles a POST request to /logout and
+#redirects to /blog after deleting the user from the session
+#add a User class
+
 from flask import Flask, request, redirect, render_template
 from flask_sqlalchemy import SQLAlchemy
 
@@ -7,7 +15,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:password@localhos
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
 
-
+#TODO - verify constructor objects are accurate as well as foreign key setup
 class Blog(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
@@ -18,6 +26,17 @@ class Blog(db.Model):
         self.title = title
         self.body = body
 
+#TODO - verify blogs relationship works properly as well as maybe constructor?
+class User(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(120), unique=True)
+    password = db.Column(db.String(120))
+    blogs = db.relationship('Blog', backref='owner_id')
+
+    def __init__(self, username, password, blogs):
+        self.uesrname = username
+        self.password = password
 
 @app.route('/blog', methods=['POST', 'GET'])
 def blog():
@@ -37,6 +56,7 @@ def newpost():
     if request.method == 'POST':
         blog_title = request.form['title']
         blog_content = request.form['body']
+        #something here for user
         error = ''
 
         if blog_content == '' or blog_title == '':
