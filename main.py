@@ -6,7 +6,7 @@
 #redirects to /blog after deleting the user from the session
 #add a User class
 
-from flask import Flask, flash, request, redirect, render_template
+from flask import Flask, flash, request, redirect, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -14,6 +14,7 @@ app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:password@localhost:8889/blogz'
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
+app.secret_key = 'y337kGcys&zP3B'
 
 #TODO - verify constructor objects are accurate as well as foreign key setup
 class Blog(db.Model):
@@ -23,9 +24,10 @@ class Blog(db.Model):
     body = db.Column(db.String(500))
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def __init__(self, title, body):
+    def __init__(self, title, body, author):
         self.title = title
         self.body = body
+        self.author = author
 
 #TODO - verify blogs relationship works properly as well as maybe constructor?
 class User(db.Model):
@@ -33,10 +35,10 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(120))
-    blogs = db.relationship('Blog', backref='owner')
+    blogs = db.relationship('Blog', backref='author')
 
-    def __init__(self, username, password, blogs):
-        self.uesrname = username
+    def __init__(self, username, password):
+        self.username = username
         self.password = password
 
 @app.route('/blog', methods=['POST', 'GET'])
@@ -57,7 +59,7 @@ def newpost():
     if request.method == 'POST':
         blog_title = request.form['title']
         blog_content = request.form['body']
-        #something here for user
+        blog_author = User.query.filter_by(username=session['username']).first()
         error = ''
 
         if blog_content == '' or blog_title == '':
@@ -68,11 +70,11 @@ def newpost():
             blog_title=blog_title, blog_content=blog_content, error=error)
 
         else:
-            new_blog = Blog(blog_title, blog_content)
+            new_blog = Blog(blog_title, blog_content, blog_author)
             db.session.add(new_blog)
             db.session.commit()
 
-            recent_post = Blog.query.filter_by(title=blog_title).first()
+            recent_post = Blog.query.filter_by(body=blog_content).first()
             id = recent_post.id
             blog = Blog.query.filter_by(id=id).first()
             return redirect("/blog?id=" + str(id))
@@ -80,22 +82,21 @@ def newpost():
     else:
         return render_template('newpost.html', title="Build-A-Blog - New Post")
 
-#####################New code added here - need to decide what to use##############################
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'register']
-    if request.endpoint not in allowed_routes and 'email' not in session:
+    allowed_routes = ['login', 'signup']
+    if request.endpoint not in allowed_routes and 'username' not in session:
         return redirect('/login')
 
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
+        username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(username=username).first()
         if user and user.password == password:
-            session['email'] = email
+            session['username'] = username
             flash("Logged in")
             return redirect('/')
         else:
@@ -104,64 +105,49 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/register', methods=['POST', 'GET'])
-def register():
+@app.route('/signup', methods=['POST', 'GET'])
+def signup():
     if request.method == 'POST':
-        email = request.form['email']
+        username = request.form['username']
         password = request.form['password']
         verify = request.form['verify']
 
         # TODO - validate user's data
 
-        existing_user = User.query.filter_by(email=email).first()
+        existing_user = User.query.filter_by(username=username).first()
         if not existing_user:
-            new_user = User(email, password)
+            new_user = User(username, password)
             db.session.add(new_user)
             db.session.commit()
-            session['email'] = email
+            session['username'] = username
             return redirect('/')
         else:
             # TODO - user better response messaging
             return "<h1>Duplicate user</h1>"
 
-    return render_template('register.html')
+    return render_template('signup.html')
 
 @app.route('/logout')
 def logout():
-    del session['email']
+    del session['username']
     return redirect('/')
 
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
 
-    owner = User.query.filter_by(email=session['email']).first()
+    author = User.query.filter_by(username=session['username']).first()
 
     if request.method == 'POST':
-        task_name = request.form['task']
-        new_task = Task(task_name, owner)
-        db.session.add(new_task)
+        blog_title = request.form['title']
+        blog_content = request.form['body']
+        new_post = Blog(blog_title, blog_content, author)
+        db.session.add(new_post)
         db.session.commit()
 
-    tasks = Task.query.filter_by(completed=False,owner=owner).all()
-    completed_tasks = Task.query.filter_by(completed=True,owner=owner).all()
-    return render_template('todos.html',title="Get It Done!", 
-        tasks=tasks, completed_tasks=completed_tasks)
-
-
-@app.route('/delete-task', methods=['POST'])
-def delete_task():
-
-    task_id = int(request.form['task-id'])
-    task = Task.query.get(task_id)
-    task.completed = True
-    db.session.add(task)
-    db.session.commit()
-
-    return redirect('/')
-
-#####################END NEW CODE BEING ADDED#################################
-
+    blogs = Blog.query.filter_by(author=author).all()
+    return render_template('blog.html',title="Blogz", 
+        blogs=blogs)
 
 if __name__ == '__main__':
     app.run()
