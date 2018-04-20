@@ -3,26 +3,18 @@
 {% block content %}
 <h1>Register to Start Blogging!</h1>
 <form action="/signup" method="post">
-    <table>
-        <tr>
-            <td><label for="username">Username</label></td>
-            <td>
-                <input name="username" type="text" value="{{ username }}">
-            </td>
-        </tr>
-        <tr>
-            <td><label for="password">Password</label></td>
-            <td>
+    <label for="username">Username</label>
+            <input name="username" type="text" value="{{ username }}">
+        <span class="error">{{username_error}}</span>
+        <p></p>
+        <label for="password">Password</label>
                 <input name="password" type="password">
-            </td>
-        </tr>
-        <tr>
-            <td><label for="verify">Verify Password</label></td>
-            <td>
-                <input name="verify" type="password">
-            </td>
-        </tr>
-    </table>
+        <span class="error">{{password_error}}</span>
+        <p></p>
+        <label for="verify">Verify Password</label>
+            <input name="verify" type="password">
+        <span class="error">{{v_password_error}}</span>
+        <p></p>
     <input type="submit" value="Sign Up!">
 </form>
 

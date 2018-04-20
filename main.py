@@ -33,8 +33,8 @@ class Blog(db.Model):
 class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(120), unique=True)
-    password = db.Column(db.String(120))
+    username = db.Column(db.String(20), unique=True)
+    password = db.Column(db.String(40))
     blogs = db.relationship('Blog', backref='author')
 
     def __init__(self, username, password):
@@ -98,34 +98,63 @@ def login():
         if user and user.password == password:
             session['username'] = username
             flash("Logged in")
-            return redirect('/')
+            return redirect('/newpost')
         else:
-            flash('User password incorrect, or user does not exist', 'error')
+            flash('Your username or password is incorrect. Please try again.', 'error')
 
     return render_template('login.html')
 
 
 @app.route('/signup', methods=['POST', 'GET'])
 def signup():
+
+    username_error = ''
+    password_error = ''
+    v_password_error = ''
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        verify = request.form['verify']
+        v_password = request.form['verify']
 
-        # TODO - validate user's data
+        if username == '':
+            username_error = 'Please enter a Username.'
+        if len(username) < 3 or len(username) > 20:
+            username_error = 'Your username must be more than 3 characters and less than 20 characters.'
+        if ' ' in username:
+            username_error = 'Your username cannot contain any spaces.'
 
-        existing_user = User.query.filter_by(username=username).first()
-        if not existing_user:
-            new_user = User(username, password)
-            db.session.add(new_user)
-            db.session.commit()
-            session['username'] = username
-            return redirect('/')
+        if password == '':
+            password_error = 'Please enter a password.'
+        if len(password) < 3 or len(password) > 40:
+            password_error = 'Your password must be more than 3 characters and less than 40 characters.'
+        if ' ' in password:
+            password_error = 'Your password cannot contain any spaces.'
+
+        if v_password == '':
+            v_password_error = 'Please re-enter your password.'
+
+        if password != v_password:
+            password_error = ''
+            v_password_error = 'Please verify with a correct password.'
+
+        if username_error != '' or password_error != '' or v_password_error != '':
+                return render_template('signup.html', username_error=username_error, password_error=password_error, 
+                v_password_error=v_password_error)
+
         else:
-            # TODO - user better response messaging
-            return "<h1>Duplicate user</h1>"
+            existing_user = User.query.filter_by(username=username).first()
+            if not existing_user:
+                new_user = User(username, password)
+                db.session.add(new_user)
+                db.session.commit()
+                session['username'] = username
+                return redirect('/newpost')
+            else:
+                username_error = 'This username is already taken.'
 
-    return render_template('signup.html')
+    return render_template('signup.html', username_error=username_error, password_error=password_error, 
+                v_password_error=v_password_error)
 
 @app.route('/logout')
 def logout():
