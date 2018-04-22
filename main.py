@@ -44,14 +44,29 @@ class User(db.Model):
 @app.route('/blog', methods=['POST', 'GET'])
 def blog():
 
+    if request.method == 'POST':
+        blog_title = request.form['title']
+        blog_content = request.form['body']
+        author = User.query.filter_by(username=session['username']).first()
+        new_post = Blog(blog_title, blog_content, author)
+        db.session.add(new_post)
+        db.session.commit()
+
     if request.args.get('id'):
         id = request.args.get('id')
         blog = Blog.query.filter_by(id=id).first()
         return render_template('singleblog.html', title="Build-A-Blog", blog=blog)
 
+    if request.args.get('user'):
+        user = request.args.get('user')
+        user_posts = Blog.query.filter_by(owner_id=user).all()
+        return render_template('blog.html', title="Blogz", blogs=user_posts)
+
     else:
         blogs = Blog.query.all()
-        return render_template('blog.html', title="Build-A-Blog", blogs=blogs)
+        username = request.args.get('user')
+        user = User.query.filter_by(username=username).all()
+        return render_template('blog.html', title="Build-A-Blog", blogs=blogs, user=user)
 
 @app.route('/newpost', methods=['POST', 'GET'])
 def newpost():
@@ -84,7 +99,7 @@ def newpost():
 
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'signup']
+    allowed_routes = ['login', 'signup', 'blog', 'index']
     if request.endpoint not in allowed_routes and 'username' not in session:
         return redirect('/login')
 
@@ -159,24 +174,12 @@ def signup():
 @app.route('/logout')
 def logout():
     del session['username']
-    return redirect('/')
-
+    return redirect('/blog')
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
-
-    author = User.query.filter_by(username=session['username']).first()
-
-    if request.method == 'POST':
-        blog_title = request.form['title']
-        blog_content = request.form['body']
-        new_post = Blog(blog_title, blog_content, author)
-        db.session.add(new_post)
-        db.session.commit()
-
-    blogs = Blog.query.filter_by(author=author).all()
-    return render_template('blog.html',title="Blogz", 
-        blogs=blogs)
+    users = User.query.all()
+    return render_template('index.html', title="Blogz", users=users)
 
 if __name__ == '__main__':
     app.run()

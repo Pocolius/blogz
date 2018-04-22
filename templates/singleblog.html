@@ -3,7 +3,8 @@
 {% block content %}
     <h1>Build-A-Blog</h1>
     <hr />
-        <h2>{{blog.title}}</h2>
-        {{blog.body}}
-
+    <h2><a href='/blog?id={{blog.id}}'>{{blog.title}}</a></h2>
+    {{blog.body}}
+    <p><em>Written by:</em> <a href='/blog?user={{blog.owner_id}}'>{{blog.author.username}}</a></p>
+    <hr />
 {% endblock %}
