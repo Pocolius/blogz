@@ -55,7 +55,7 @@ def blog():
     if request.args.get('id'):
         id = request.args.get('id')
         blog = Blog.query.filter_by(id=id).first()
-        return render_template('singleblog.html', title="Build-A-Blog", blog=blog)
+        return render_template('singleblog.html', title="Blogz", blog=blog)
 
     if request.args.get('user'):
         user = request.args.get('user')
@@ -66,7 +66,7 @@ def blog():
         blogs = Blog.query.all()
         username = request.args.get('user')
         user = User.query.filter_by(username=username).all()
-        return render_template('blog.html', title="Build-A-Blog", blogs=blogs, user=user)
+        return render_template('blog.html', title="Blogz", blogs=blogs, user=user)
 
 @app.route('/newpost', methods=['POST', 'GET'])
 def newpost():
@@ -81,7 +81,7 @@ def newpost():
             error = "Whoops! You're missing something. Please make sure you have a title and some content."
 
         if error != '':
-            return render_template('newpost.html', title="Build-A-Blog", 
+            return render_template('newpost.html', title="Blogz", 
             blog_title=blog_title, blog_content=blog_content, error=error)
 
         else:
@@ -95,7 +95,7 @@ def newpost():
             return redirect("/blog?id=" + str(id))
 
     else:
-        return render_template('newpost.html', title="Build-A-Blog - New Post")
+        return render_template('newpost.html', title="Blogz - New Post")
 
 @app.before_request
 def require_login():
